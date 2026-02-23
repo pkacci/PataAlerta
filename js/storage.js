@@ -29,15 +29,14 @@ var IMGBB_API_KEY = '8f4871ff73978f1139fd8f5e4ffdcd77';
  * @returns {Promise<{ sucesso: boolean, url: string, erro: string }>}
  */
 function uploadFoto(file, onProgress) {
-  try {
-    if (IMGBB_API_KEY === '8f4871ff73978f1139fd8f5e4ffdcd77') {
-      return Promise.resolve({
-        sucesso: false,
-        url: '',
-        erro: 'ImgBB não configurado. Abra js/storage.js e insira sua API key.'
-      });
+    if (!IMGBB_API_KEY || IMGBB_API_KEY.trim() === '') {
+  return Promise.resolve({
+    sucesso: false,
+    url: '',
+    erro: 'ImgBB não configurado. Abra js/storage.js e insira sua API key.'
+  });
     }
-
+  
     // Validar imagem antes do upload
     var validacao = validarImagem(file);
     if (!validacao.valido) {
