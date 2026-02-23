@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <!-- Pata principal -->
+  <g fill="#0D4F4F">
+    <!-- Almofada central -->
+    <ellipse cx="256" cy="320" rx="90" ry="75" />
+    <!-- Dedos -->
+    <ellipse cx="160" cy="210" rx="42" ry="52" transform="rotate(-15 160 210)" />
+    <ellipse cx="256" cy="180" rx="40" ry="55" />
+    <ellipse cx="348" cy="210" rx="42" ry="52" transform="rotate(15 348 210)" />
+  </g>
+  <!-- Acento coral (alerta) -->
+  <circle cx="390" cy="140" r="50" fill="#FF6B4A" />
+  <text x="390" y="158" text-anchor="middle" font-family="sans-serif" font-weight="800" font-size="56" fill="#FFFFFF">!</text>
+</svg>
