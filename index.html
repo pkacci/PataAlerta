@@ -1,0 +1,433 @@
+<!-- ========== INÍCIO: index.html | path: pataalerta/index.html ========== -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PataAlerta — Animais Perdidos, Encontrados e Doação na sua Cidade</title>
+  <meta name="description" content="Registre e encontre animais perdidos na sua cidade em menos de 2 minutos. 100% gratuito. Compartilhe no WhatsApp e ajude a reunir pets e donos.">
+  <meta name="keywords" content="animal perdido, cachorro perdido, gato perdido, encontrei animal, doação pet">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#0D4F4F">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="PataAlerta — Seu pet está perdido? A vizinhança inteira pode ajudar.">
+  <meta property="og:description" content="Registre um alerta gratuito e compartilhe com sua cidade.">
+  <meta property="og:image" content="img/og-image.jpg">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="pt_BR">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="PataAlerta — Animais Perdidos, Encontrados e Doação">
+  <meta name="twitter:description" content="Registre um alerta gratuito e compartilhe com sua cidade.">
+  <meta name="twitter:image" content="img/og-image.jpg">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="img/logo.svg">
+  <link rel="apple-touch-icon" href="img/logo.svg">
+
+  <!-- Google Fonts: Sora (headlines) + Inter (body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Lucide Icons (CDN) -->
+  <script src="https://unpkg.com/lucide@0.263.1/dist/umd/lucide.min.js" defer></script>
+
+  <!-- Firebase SDK (CDN) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js" defer></script>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ====== HEADER ====== -->
+  <header class="header" id="header">
+    <div class="header__container">
+      <a href="#/" class="header__logo" aria-label="PataAlerta - Página inicial">
+        <img src="img/logo.svg" alt="PataAlerta" class="header__logo-img" width="40" height="40">
+        <span class="header__logo-text">Pata<span class="header__logo-accent">Alerta</span></span>
+      </a>
+      <nav class="header__nav" aria-label="Navegação principal">
+        <a href="#/" class="header__link" data-nav="home">Início</a>
+        <a href="#/alertas" class="header__link" data-nav="alertas">Alertas</a>
+        <a href="#/novo" class="header__btn-cta">
+          <i data-lucide="plus-circle"></i>
+          Registrar
+        </a>
+      </nav>
+      <button class="header__menu-toggle" id="menuToggle" aria-label="Abrir menu" aria-expanded="false">
+        <i data-lucide="menu"></i>
+      </button>
+    </div>
+    <!-- Menu mobile -->
+    <div class="header__mobile-menu" id="mobileMenu" aria-hidden="true">
+      <a href="#/" class="header__mobile-link" data-nav="home">Início</a>
+      <a href="#/alertas" class="header__mobile-link" data-nav="alertas">Alertas</a>
+      <a href="#/novo" class="header__mobile-link header__mobile-cta">Registrar Alerta</a>
+    </div>
+  </header>
+
+  <!-- ====== MAIN (SPA - telas dinâmicas) ====== -->
+  <main class="main" id="main">
+
+    <!-- TELA: HOME -->
+    <section class="screen screen--home" id="screenHome" aria-label="Página inicial">
+      <!-- Hero -->
+      <div class="hero">
+        <div class="hero__bg-pattern"></div>
+        <div class="hero__container">
+          <h1 class="hero__title">
+            Seu pet está perdido?<br>
+            A vizinhança inteira pode <span class="hero__highlight">ajudar</span>.
+          </h1>
+          <p class="hero__subtitle">Registre um alerta em menos de 2 minutos e compartilhe com sua cidade.</p>
+          <div class="hero__actions">
+            <a href="#/novo" class="btn btn--primary btn--lg">
+              <i data-lucide="plus-circle"></i>
+              Registrar Alerta
+            </a>
+            <a href="#/alertas" class="btn btn--secondary btn--lg">
+              <i data-lucide="search"></i>
+              Ver Alertas
+            </a>
+          </div>
+          <div class="hero__stats" id="heroStats">
+            <div class="hero__stat">
+              <span class="hero__stat-number" id="statTotal">0</span>
+              <span class="hero__stat-label">Alertas ativos</span>
+            </div>
+            <div class="hero__stat">
+              <span class="hero__stat-number" id="statResolvidos">0</span>
+              <span class="hero__stat-label">Já encontrados</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Alertas Recentes -->
+      <div class="section">
+        <div class="section__container">
+          <div class="section__header">
+            <h2 class="section__title">Alertas Recentes</h2>
+            <a href="#/alertas" class="section__link">Ver todos <i data-lucide="arrow-right"></i></a>
+          </div>
+          <div class="cards-grid" id="recentAlerts">
+            <!-- Cards renderizados por JS -->
+          </div>
+          <div class="empty-state" id="emptyHome" style="display:none;">
+            <i data-lucide="heart"></i>
+            <p>Nenhum alerta ainda. Seja o primeiro a ajudar!</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TELA: LISTA DE ALERTAS -->
+    <section class="screen screen--alertas" id="screenAlertas" style="display:none;" aria-label="Lista de alertas">
+      <div class="section">
+        <div class="section__container">
+          <h1 class="page-title">Alertas</h1>
+
+          <!-- Filtros -->
+          <div class="filters" id="filters">
+            <div class="filters__group">
+              <label class="filters__label">Tipo</label>
+              <div class="filters__chips" id="filterTipo">
+                <button class="chip chip--active" data-filter="tipo" data-value="todos">Todos</button>
+                <button class="chip" data-filter="tipo" data-value="perdido">🔴 Perdido</button>
+                <button class="chip" data-filter="tipo" data-value="encontrado">🔵 Encontrado</button>
+                <button class="chip" data-filter="tipo" data-value="doacao">🟢 Doação</button>
+              </div>
+            </div>
+            <div class="filters__group">
+              <label class="filters__label">Espécie</label>
+              <div class="filters__chips" id="filterEspecie">
+                <button class="chip chip--active" data-filter="especie" data-value="todos">Todos</button>
+                <button class="chip" data-filter="especie" data-value="cachorro">Cachorro</button>
+                <button class="chip" data-filter="especie" data-value="gato">Gato</button>
+                <button class="chip" data-filter="especie" data-value="outro">Outro</button>
+              </div>
+            </div>
+            <div class="filters__group">
+              <label class="filters__label">Bairro</label>
+              <select class="select" id="filterBairro">
+                <option value="todos">Todos os bairros</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Lista de cards -->
+          <div class="cards-grid" id="alertsList">
+            <!-- Cards renderizados por JS -->
+          </div>
+
+          <!-- Skeleton loading -->
+          <div class="skeleton-grid" id="skeletonList" style="display:none;">
+            <div class="skeleton-card"></div>
+            <div class="skeleton-card"></div>
+            <div class="skeleton-card"></div>
+            <div class="skeleton-card"></div>
+            <div class="skeleton-card"></div>
+            <div class="skeleton-card"></div>
+          </div>
+
+          <!-- Empty state -->
+          <div class="empty-state" id="emptyAlertas" style="display:none;">
+            <i data-lucide="search-x"></i>
+            <p>Nenhum alerta encontrado com esses filtros.</p>
+          </div>
+
+          <!-- Carregar mais -->
+          <div class="load-more" id="loadMore" style="display:none;">
+            <button class="btn btn--secondary" id="btnLoadMore">Carregar mais</button>
+          </div>
+
+          <!-- Erro -->
+          <div class="error-state" id="errorAlertas" style="display:none;">
+            <i data-lucide="wifi-off"></i>
+            <p>Não foi possível carregar os alertas. Tente novamente.</p>
+            <button class="btn btn--secondary" id="btnRetryList">Tentar novamente</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TELA: DETALHE DO ALERTA -->
+    <section class="screen screen--detalhe" id="screenDetalhe" style="display:none;" aria-label="Detalhe do alerta">
+      <div class="section">
+        <div class="section__container">
+          <a href="#/alertas" class="back-link">
+            <i data-lucide="arrow-left"></i>
+            Voltar
+          </a>
+          <article class="detalhe" id="detalheContent">
+            <!-- Renderizado por JS -->
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- TELA: CADASTRAR ALERTA -->
+    <section class="screen screen--novo" id="screenNovo" style="display:none;" aria-label="Registrar novo alerta">
+      <div class="section">
+        <div class="section__container section__container--narrow">
+          <h1 class="page-title">Novo Alerta</h1>
+
+          <form class="form" id="formAlerta" novalidate>
+            <!-- Tipo -->
+            <fieldset class="form__fieldset">
+              <legend class="form__legend">Sobre o animal</legend>
+
+              <div class="form__group">
+                <label class="form__label" for="inputTipo">O que aconteceu? *</label>
+                <select class="select" id="inputTipo" required>
+                  <option value="">Selecione</option>
+                  <option value="perdido">Perdi meu animal</option>
+                  <option value="encontrado">Encontrei um animal</option>
+                  <option value="doacao">Quero doar</option>
+                </select>
+                <span class="form__error" id="errorTipo"></span>
+              </div>
+
+              <div class="form__group">
+                <label class="form__label" for="inputEspecie">Qual o animal? *</label>
+                <select class="select" id="inputEspecie" required>
+                  <option value="">Selecione</option>
+                  <option value="cachorro">Cachorro</option>
+                  <option value="gato">Gato</option>
+                  <option value="outro">Outro</option>
+                </select>
+                <span class="form__error" id="errorEspecie"></span>
+              </div>
+
+              <div class="form__group">
+                <label class="form__label" for="inputNome">Nome do animal (opcional)</label>
+                <input type="text" class="input" id="inputNome" placeholder="Ex: Rex, Mimi..." maxlength="50">
+              </div>
+
+              <div class="form__group">
+                <label class="form__label" for="inputDescricao">Descrição *</label>
+                <textarea class="input input--textarea" id="inputDescricao" placeholder="Descreva o animal: cor, porte, raça, coleira..." required minlength="10" maxlength="500"></textarea>
+                <span class="form__char-count"><span id="charCount">0</span>/500</span>
+                <span class="form__error" id="errorDescricao"></span>
+              </div>
+
+              <div class="form__group">
+                <label class="form__label">Foto do animal *</label>
+                <div class="upload-area" id="uploadArea">
+                  <input type="file" class="upload-area__input" id="inputFoto" accept="image/jpeg,image/png,image/webp" required>
+                  <div class="upload-area__placeholder" id="uploadPlaceholder">
+                    <i data-lucide="camera"></i>
+                    <span>Toque para adicionar foto</span>
+                    <span class="upload-area__hint">JPG, PNG ou WebP • Máx 5MB</span>
+                  </div>
+                  <div class="upload-area__preview" id="uploadPreview" style="display:none;">
+                    <img id="previewImg" alt="Preview da foto">
+                    <button type="button" class="upload-area__change" id="btnChangeFoto">Trocar foto</button>
+                  </div>
+                  <div class="upload-area__progress" id="uploadProgress" style="display:none;">
+                    <div class="progress-bar">
+                      <div class="progress-bar__fill" id="progressFill"></div>
+                    </div>
+                    <span>Enviando foto...</span>
+                  </div>
+                </div>
+                <span class="form__error" id="errorFoto"></span>
+              </div>
+            </fieldset>
+
+            <!-- Localização -->
+            <fieldset class="form__fieldset">
+              <legend class="form__legend">Localização</legend>
+
+              <div class="form__group">
+                <label class="form__label" for="inputBairro">Bairro *</label>
+                <select class="select" id="inputBairro" required>
+                  <option value="">Selecione o bairro</option>
+                </select>
+                <span class="form__error" id="errorBairro"></span>
+              </div>
+
+              <div class="form__group">
+                <label class="form__label" for="inputCidade">Cidade *</label>
+                <input type="text" class="input" id="inputCidade" placeholder="Sua cidade" required minlength="2" maxlength="50">
+                <span class="form__error" id="errorCidade"></span>
+              </div>
+            </fieldset>
+
+            <!-- Contato -->
+            <fieldset class="form__fieldset">
+              <legend class="form__legend">Seu contato</legend>
+
+              <div class="form__group">
+                <label class="form__label" for="inputNomeContato">Seu nome *</label>
+                <input type="text" class="input" id="inputNomeContato" placeholder="Como quer ser chamado" required minlength="2" maxlength="50">
+                <span class="form__error" id="errorNomeContato"></span>
+              </div>
+
+              <div class="form__group">
+                <label class="form__label" for="inputWhatsapp">WhatsApp *</label>
+                <input type="tel" class="input" id="inputWhatsapp" placeholder="(00) 00000-0000" required>
+                <span class="form__error" id="errorWhatsapp"></span>
+              </div>
+            </fieldset>
+
+            <!-- Termos -->
+            <div class="form__group form__group--checkbox">
+              <label class="checkbox">
+                <input type="checkbox" id="inputTermos" required>
+                <span class="checkbox__mark"></span>
+                <span class="checkbox__text">Declaro que as informações são verdadeiras</span>
+              </label>
+              <span class="form__error" id="errorTermos"></span>
+            </div>
+
+            <!-- Submit -->
+            <button type="submit" class="btn btn--primary btn--lg btn--full" id="btnSubmit">
+              <span class="btn__text">Publicar Alerta</span>
+              <span class="btn__loading" style="display:none;">
+                <span class="spinner"></span>
+                Publicando...
+              </span>
+            </button>
+
+            <!-- Erro geral -->
+            <div class="form__global-error" id="globalError" style="display:none;">
+              <i data-lucide="alert-triangle"></i>
+              <span>Não foi possível publicar. Verifique sua conexão e tente novamente.</span>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- TELA: CONFIRMAÇÃO -->
+    <section class="screen screen--confirmacao" id="screenConfirmacao" style="display:none;" aria-label="Alerta publicado">
+      <div class="section">
+        <div class="section__container section__container--narrow section__container--center">
+          <div class="confirmacao">
+            <div class="confirmacao__icon">
+              <i data-lucide="check-circle"></i>
+            </div>
+            <h1 class="confirmacao__title">Alerta publicado! 🎉</h1>
+            <p class="confirmacao__subtitle">Agora compartilhe para alcançar mais pessoas.</p>
+            <div class="confirmacao__actions">
+              <button class="btn btn--whatsapp btn--lg btn--full" id="btnShareWhatsapp">
+                <i data-lucide="message-circle"></i>
+                Compartilhar no WhatsApp
+              </button>
+              <button class="btn btn--secondary btn--lg btn--full" id="btnCopyLink">
+                <i data-lucide="copy"></i>
+                Copiar link
+              </button>
+              <a href="#/alertas" class="btn btn--ghost btn--lg btn--full">
+                <i data-lucide="list"></i>
+                Ver Alertas
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TELA: ADMIN -->
+    <section class="screen screen--admin" id="screenAdmin" style="display:none;" aria-label="Painel administrativo">
+      <div class="section">
+        <div class="section__container">
+          <!-- Login admin -->
+          <div class="admin-login" id="adminLogin">
+            <h1 class="page-title">Painel Admin</h1>
+            <div class="form__group">
+              <label class="form__label" for="inputAdminSenha">Senha de acesso</label>
+              <input type="password" class="input" id="inputAdminSenha" placeholder="Digite a senha">
+              <span class="form__error" id="errorAdminSenha"></span>
+            </div>
+            <button class="btn btn--primary btn--lg" id="btnAdminLogin">Entrar</button>
+          </div>
+
+          <!-- Painel admin (após login) -->
+          <div class="admin-panel" id="adminPanel" style="display:none;">
+            <div class="admin-panel__header">
+              <h1 class="page-title">Painel Admin</h1>
+              <button class="btn btn--ghost btn--sm" id="btnAdminLogout">Sair</button>
+            </div>
+
+            <!-- Tabs -->
+            <div class="admin-tabs">
+              <button class="admin-tab admin-tab--active" data-tab="alertas">Alertas</button>
+              <button class="admin-tab" data-tab="denuncias">Denúncias</button>
+            </div>
+
+            <!-- Lista admin alertas -->
+            <div class="admin-content" id="adminAlertas">
+              <div class="cards-grid" id="adminAlertsList"></div>
+            </div>
+
+            <!-- Lista admin denúncias -->
+            <div class="admin-content" id="adminDenuncias" style="display:none;">
+              <div class="admin-denuncias-list" id="adminDenunciasList"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ====== MODAL: DENUNCIAR ====== -->
+  <div class="modal" id="modalDenuncia" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="modalDenunciaTitle">
+    <div class="modal__overlay" id="modalDenunciaOverlay"></div>
+    <div class="modal__content">
+      <h2 class="modal__title" id="modalDenunciaTitle">Denunciar alerta</h2>
+      <div class="form__group">
+        <label class="form__label" for="inputDenunciaMotivo">Motivo da denúncia *</label>
+        <textarea class="input input--textarea" id="inputDenunciaMotivo" placeholder="Descreva o motivo..." minlength="5" maxlength="200"></textarea>
+        <span class="form__error" id="errorDenunciaMotivo"></span>
+      </div>
+      <div class="modal__actions">
+        <button class="btn btn--ghost" id="btnCancelDenuncia">Cancelar
