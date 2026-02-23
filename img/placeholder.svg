@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" fill="none">
+  <rect width="400" height="300" fill="#F3F4F6" />
+  <!-- Ícone de pata simplificado -->
+  <g fill="#D1D5DB" transform="translate(150, 90)">
+    <ellipse cx="50" cy="75" rx="35" ry="30" />
+    <ellipse cx="15" cy="30" rx="16" ry="20" transform="rotate(-10 15 30)" />
+    <ellipse cx="50" cy="18" rx="15" ry="22" />
+    <ellipse cx="85" cy="30" rx="16" ry="20" transform="rotate(10 85 30)" />
+  </g>
+  <text x="200" y="210" text-anchor="middle" font-family="sans-serif" font-size="14" fill="#9CA3AF">Foto não disponível</text>
+</svg>
