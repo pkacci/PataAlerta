@@ -197,7 +197,7 @@ function validarFormularioAlerta(dados) {
     erros.whatsapp = 'WhatsApp inválido. Use DDD + número';
   }
 
-  if (!dados.foto) {
+  if (!dados.temFoto) {
     erros.foto = 'Adicione uma foto do animal';
   }
 
