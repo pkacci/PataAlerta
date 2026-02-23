@@ -531,6 +531,9 @@ function submeterFormulario() {
  * @returns {object}
  */
 function coletarDadosFormulario() {
+  var inputFoto = document.getElementById('inputFoto');
+  var temArquivo = inputFoto && inputFoto.files && inputFoto.files.length > 0;
+
   return {
     tipo: obterValor('inputTipo'),
     especie: obterValor('inputEspecie'),
@@ -541,6 +544,7 @@ function coletarDadosFormulario() {
     nomeContato: obterValor('inputNomeContato'),
     whatsapp: extrairDigitosWhatsapp(obterValor('inputWhatsapp')),
     foto: null, // Será preenchido após upload
+    temFoto: temArquivo,
     termos: document.getElementById('inputTermos') ? document.getElementById('inputTermos').checked : false
   };
 }
