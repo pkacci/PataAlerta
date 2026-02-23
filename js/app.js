@@ -195,11 +195,12 @@ function inicializarApp() {
       console.warn('⚠️ Firebase não configurado. O app funcionará em modo limitado.');
     }
 
-    // 3. Carregar configuração (bairros, espécies)
+    // 3. Carregar configuração (bairros, espécies, cidades)
     carregarConfig()
       .then(function (config) {
         if (config) {
-          popularSelectBairros(config.bairros);
+          popularSelectBairros(config.bairros || []);
+          popularSelectCidades(config.cidades || []);
           console.log('✅ Config carregada');
         }
       })
