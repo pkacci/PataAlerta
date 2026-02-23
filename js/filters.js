@@ -148,6 +148,61 @@ function popularSelectBairros(bairros) {
   }
 }
 
+/**
+ * Popula o select de cidades com dados da config
+ * Trata tanto string quanto array
+ * @param {string|string[]} cidades — Cidade(s) da config
+ */
+function popularSelectCidades(cidades) {
+  try {
+    var selectForm = document.getElementById('inputCidade');
+    if (!selectForm) return;
+
+    // Converter para array se for string
+    var listaCidades = [];
+    if (typeof cidades === 'string') {
+      listaCidades = [cidades];
+    } else if (Array.isArray(cidades)) {
+      listaCidades = cidades;
+    }
+
+    // Se não tem cidades, manter como input livre
+    if (listaCidades.length === 0) return;
+
+    // Transformar input em select
+    var parent = selectForm.parentNode;
+    var label = parent.querySelector('.form__label');
+    var error = parent.querySelector('.form__error');
+
+    var novoSelect = document.createElement('select');
+    novoSelect.className = 'select';
+    novoSelect.id = 'inputCidade';
+    novoSelect.required = true;
+
+    var optionDefault = document.createElement('option');
+    optionDefault.value = '';
+    optionDefault.textContent = 'Selecione a cidade';
+    novoSelect.appendChild(optionDefault);
+
+    listaCidades.forEach(function (cidade) {
+      var option = document.createElement('option');
+      option.value = cidade;
+      option.textContent = cidade;
+      novoSelect.appendChild(option);
+    });
+
+    // Adicionar opção "Outra"
+    var optionOutra = document.createElement('option');
+    optionOutra.value = 'Outra';
+    optionOutra.textContent = 'Outra';
+    novoSelect.appendChild(optionOutra);
+
+    parent.replaceChild(novoSelect, selectForm);
+  } catch (error) {
+    console.error('Erro ao popular cidades:', error);
+  }
+}
+
 /* ---------- CARREGAR LISTA ---------- */
 
 /**
