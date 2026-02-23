@@ -430,4 +430,71 @@
         <span class="form__error" id="errorDenunciaMotivo"></span>
       </div>
       <div class="modal__actions">
-        <button class="btn btn--ghost" id="btnCancelDenuncia">Cancelar
+        <button class="btn btn--ghost" id="btnCancelDenuncia">Cancelar</button>
+        <button class="btn btn--danger" id="btnConfirmDenuncia">Denunciar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== MODAL: CONFIRMAR REMOÇÃO (Admin) ====== -->
+  <div class="modal" id="modalRemover" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="modalRemoverTitle">
+    <div class="modal__overlay" id="modalRemoverOverlay"></div>
+    <div class="modal__content">
+      <h2 class="modal__title" id="modalRemoverTitle">Remover alerta</h2>
+      <p>Tem certeza? Esta ação não pode ser desfeita.</p>
+      <div class="modal__actions">
+        <button class="btn btn--ghost" id="btnCancelRemover">Cancelar</button>
+        <button class="btn btn--danger" id="btnConfirmRemover">Remover</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== TOAST / NOTIFICAÇÕES ====== -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- ====== FOOTER ====== -->
+  <footer class="footer">
+    <div class="footer__container">
+      <p class="footer__text">Feito com ❤️ para a comunidade</p>
+      <p class="footer__text footer__text--small">PataAlerta © <span id="footerYear"></span> • 100% gratuito</p>
+    </div>
+  </footer>
+
+  <!-- ====== NOSCRIPT ====== -->
+  <noscript>
+    <div style="text-align:center;padding:2rem;font-family:sans-serif;">
+      <h1>PataAlerta</h1>
+      <p>Este site precisa de JavaScript para funcionar. Por favor, ative o JavaScript no seu navegador.</p>
+    </div>
+  </noscript>
+
+  <!-- JS Modules (defer) -->
+  <script src="js/firebase-config.js" defer></script>
+  <script src="js/utils.js" defer></script>
+  <script src="js/db.js" defer></script>
+  <script src="js/storage.js" defer></script>
+  <script src="js/filters.js" defer></script>
+  <script src="js/ui.js" defer></script>
+  <script src="js/admin.js" defer></script>
+  <script src="js/app.js" defer></script>
+</body>
+</html>
+<!-- ========== FIM: index.html | path: pataalerta/index.html ========== -->
+
+<!--
+  LISTA DE ELEMENTOS PRESENTES:
+  - Head: meta tags (SEO, OG, Twitter), favicon, fonts (Sora+Inter), CDNs (Lucide, Firebase), CSS
+  - Header: logo, nav desktop, nav mobile com toggle
+  - Tela Home: hero (título, subtítulo, CTAs, stats), alertas recentes, empty state
+  - Tela Alertas: filtros (tipo, espécie, bairro), cards grid, skeleton, empty state, carregar mais, erro
+  - Tela Detalhe: back link, conteúdo dinâmico (renderizado por JS)
+  - Tela Novo: formulário completo (tipo, espécie, nome, descrição, foto, bairro, cidade, nome contato, whatsapp, termos)
+  - Tela Confirmação: ícone, título, botões compartilhar/copiar/ver alertas
+  - Tela Admin: login por senha, painel com tabs (alertas/denúncias)
+  - Modal Denúncia: motivo + botões cancelar/confirmar
+  - Modal Remover: confirmação + botões cancelar/confirmar
+  - Toast container
+  - Footer: créditos + ano dinâmico
+  - Noscript fallback
+  - 8 scripts JS com defer
+-->
