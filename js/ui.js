@@ -367,7 +367,11 @@ function inicializarFormulario() {
       btnChangeFoto.addEventListener('click', function (e) {
         e.preventDefault();
         e.stopPropagation();
-        if (inputFoto) inputFoto.click();
+        if (inputFoto) {
+          inputFoto.style.display = 'block';
+          inputFoto.value = '';
+          inputFoto.click();
+        }
       });
     }
 
@@ -389,6 +393,7 @@ function inicializarFormulario() {
  */
 function tratarSelecaoFoto(inputFoto) {
   try {
+    if (!inputFoto.files || inputFoto.files.length === 0) return;
     var file = inputFoto.files[0];
     if (!file) return;
 
@@ -403,20 +408,36 @@ function tratarSelecaoFoto(inputFoto) {
 
     if (errorFoto) errorFoto.textContent = '';
 
-    // Gerar preview
-    gerarPreviewLocal(file)
-      .then(function (dataUrl) {
+    // Gerar preview usando método direto (mais compatível com mobile)
+    try {
+      var reader = new FileReader();
+      reader.onload = function (e) {
         var placeholder = document.getElementById('uploadPlaceholder');
         var preview = document.getElementById('uploadPreview');
         var previewImg = document.getElementById('previewImg');
 
         if (placeholder) placeholder.style.display = 'none';
-        if (preview) preview.style.display = 'block';
-        if (previewImg) previewImg.src = dataUrl;
-      })
-      .catch(function () {
-        if (errorFoto) errorFoto.textContent = 'Erro ao carregar preview';
-      });
+        if (preview) {
+          preview.style.display = 'block';
+        }
+        if (previewImg) {
+          previewImg.src = e.target.result;
+          previewImg.alt = 'Preview: ' + file.name;
+        }
+
+        // Esconder o input file sobre o preview para não interceptar cliques
+        inputFoto.style.display = 'none';
+      };
+      reader.onerror = function () {
+        if (errorFoto) errorFoto.textContent = 'Erro ao carregar preview da foto';
+      };
+      reader.readAsDataURL(file);
+    } catch (readerError) {
+      console.error('Erro no FileReader:', readerError);
+      // Mesmo sem preview, o arquivo está selecionado e será enviado
+      var placeholder = document.getElementById('uploadPlaceholder');
+      if (placeholder) placeholder.innerHTML = '<span>✅ Foto selecionada: ' + file.name + '</span>';
+    }
   } catch (error) {
     console.error('Erro ao tratar seleção de foto:', error);
   }
@@ -725,9 +746,11 @@ function resetarFormulario() {
     var placeholder = document.getElementById('uploadPlaceholder');
     var preview = document.getElementById('uploadPreview');
     var progress = document.getElementById('uploadProgress');
+    var inputFoto = document.getElementById('inputFoto');
     if (placeholder) placeholder.style.display = 'flex';
     if (preview) preview.style.display = 'none';
     if (progress) progress.style.display = 'none';
+    if (inputFoto) inputFoto.style.display = 'block';
 
     // Resetar contador de caracteres
     var charCount = document.getElementById('charCount');
