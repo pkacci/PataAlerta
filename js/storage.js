@@ -1,13 +1,28 @@
 /* ========== INÍCIO: storage.js | path: pataalerta/js/storage.js ========== */
 
 /**
- * PataAlerta — Firebase Storage
- * Upload, URL e gerenciamento de fotos dos animais
+ * PataAlerta — Upload de Fotos via ImgBB
+ * Substitui Firebase Storage (que exige plano Blaze)
+ * API gratuita, sem limite, URL permanente
  * Todas as funções com try/catch obrigatório
  */
 
+/* ---------- CONFIGURAÇÃO ---------- */
+
 /**
- * Faz upload de uma foto para o Firebase Storage
+ * API Key do ImgBB
+ * INSTRUÇÕES:
+ * 1. Acesse api.imgbb.com
+ * 2. Crie conta gratuita
+ * 3. Copie sua API key
+ * 4. Cole abaixo substituindo o placeholder
+ */
+var IMGBB_API_KEY = '8f4871ff73978f1139fd8f5e4ffdcd77';
+
+/* ---------- UPLOAD ---------- */
+
+/**
+ * Faz upload de uma foto para o ImgBB
  * Comprime a imagem antes de enviar (máx 1200px, qualidade 0.8)
  * @param {File} file — Arquivo de imagem do input
  * @param {function} onProgress — Callback de progresso (0-100)
@@ -15,12 +30,11 @@
  */
 function uploadFoto(file, onProgress) {
   try {
-    var storageRef = getStorage();
-    if (!storageRef) {
+    if (IMGBB_API_KEY === '8f4871ff73978f1139fd8f5e4ffdcd77') {
       return Promise.resolve({
         sucesso: false,
         url: '',
-        erro: 'Firebase Storage não está configurado'
+        erro: 'ImgBB não configurado. Abra js/storage.js e insira sua API key.'
       });
     }
 
@@ -34,84 +48,31 @@ function uploadFoto(file, onProgress) {
       });
     }
 
+    // Indicar início do progresso
+    if (typeof onProgress === 'function') {
+      onProgress(10);
+    }
+
     // Comprimir imagem antes do upload
     return comprimirImagem(file)
       .then(function (blobComprimido) {
-        // Gerar nome único para o arquivo
-        var nomeArquivo = gerarNomeArquivo(file.name);
-        var ref = storageRef.ref('alertas/' + nomeArquivo);
+        if (typeof onProgress === 'function') {
+          onProgress(30);
+        }
 
-        // Iniciar upload
-        var uploadTask = ref.put(blobComprimido, {
-          contentType: 'image/jpeg'
-        });
+        // Converter blob para base64
+        return blobParaBase64(blobComprimido);
+      })
+      .then(function (base64Data) {
+        if (typeof onProgress === 'function') {
+          onProgress(50);
+        }
 
-        return new Promise(function (resolve) {
-          uploadTask.on(
-            'state_changed',
-            // Progresso
-            function (snapshot) {
-              try {
-                var progresso = Math.round(
-                  (snapshot.bytesTransferred / snapshot.totalBytes) * 100
-                );
-                if (typeof onProgress === 'function') {
-                  onProgress(progresso);
-                }
-              } catch (e) {
-                // Silencioso
-              }
-            },
-            // Erro
-            function (error) {
-              console.error('Erro no upload:', error);
-              var mensagemErro = traduzirErroStorage(error.code);
-              resolve({
-                sucesso: false,
-                url: '',
-                erro: mensagemErro
-              });
-            },
-            // Sucesso
-            function () {
-              uploadTask.snapshot.ref.getDownloadURL()
-                .then(function (url) {
-                  resolve({
-                    sucesso: true,
-                    url: url,
-                    erro: ''
-                  });
-                })
-                .catch(function (error) {
-                  console.error('Erro ao obter URL:', error);
-                  resolve({
-                    sucesso: false,
-                    url: '',
-                    erro: 'Foto enviada mas não foi possível obter o link'
-                  });
-                });
-            }
-          );
-
-          // Timeout de 30 segundos
-          setTimeout(function () {
-            try {
-              if (uploadTask.snapshot.state === 'running') {
-                uploadTask.cancel();
-                resolve({
-                  sucesso: false,
-                  url: '',
-                  erro: 'Upload muito lento. Verifique sua conexão e tente novamente.'
-                });
-              }
-            } catch (e) {
-              // Silencioso
-            }
-          }, 30000);
-        });
+        // Enviar para ImgBB
+        return enviarParaImgBB(base64Data, onProgress);
       })
       .catch(function (error) {
-        console.error('Erro ao comprimir imagem:', error);
+        console.error('Erro no upload:', error);
         return {
           sucesso: false,
           url: '',
@@ -129,36 +90,146 @@ function uploadFoto(file, onProgress) {
 }
 
 /**
- * Gera nome único para o arquivo de foto
- * Formato: {timestamp}_{random}.jpg
- * @param {string} nomeOriginal — Nome original do arquivo
- * @returns {string} Nome único
+ * Envia imagem base64 para a API do ImgBB
+ * @param {string} base64Data — Imagem em base64 (sem prefixo data:)
+ * @param {function} onProgress — Callback de progresso
+ * @returns {Promise<{ sucesso: boolean, url: string, erro: string }>}
  */
-function gerarNomeArquivo(nomeOriginal) {
-  var timestamp = Date.now();
-  var random = Math.random().toString(36).substring(2, 8);
-  return timestamp + '_' + random + '.jpg';
+function enviarParaImgBB(base64Data, onProgress) {
+  return new Promise(function (resolve) {
+    try {
+      var formData = new FormData();
+      formData.append('key', IMGBB_API_KEY);
+      formData.append('image', base64Data);
+
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', 'https://api.imgbb.com/1/upload', true);
+
+      // Progresso do upload
+      xhr.upload.addEventListener('progress', function (e) {
+        if (e.lengthComputable && typeof onProgress === 'function') {
+          var percentual = 50 + Math.round((e.loaded / e.total) * 45);
+          onProgress(Math.min(percentual, 95));
+        }
+      });
+
+      // Timeout de 30 segundos
+      xhr.timeout = 30000;
+
+      xhr.onload = function () {
+        try {
+          if (typeof onProgress === 'function') {
+            onProgress(100);
+          }
+
+          if (xhr.status === 200) {
+            var resposta = JSON.parse(xhr.responseText);
+            if (resposta.success && resposta.data && resposta.data.url) {
+              resolve({
+                sucesso: true,
+                url: resposta.data.url,
+                erro: ''
+              });
+            } else {
+              resolve({
+                sucesso: false,
+                url: '',
+                erro: 'Resposta inválida do servidor de imagens.'
+              });
+            }
+          } else {
+            var mensagem = traduzirErroImgBB(xhr.status);
+            resolve({
+              sucesso: false,
+              url: '',
+              erro: mensagem
+            });
+          }
+        } catch (error) {
+          resolve({
+            sucesso: false,
+            url: '',
+            erro: 'Erro ao processar resposta do servidor.'
+          });
+        }
+      };
+
+      xhr.onerror = function () {
+        resolve({
+          sucesso: false,
+          url: '',
+          erro: 'Erro de conexão. Verifique sua internet e tente novamente.'
+        });
+      };
+
+      xhr.ontimeout = function () {
+        resolve({
+          sucesso: false,
+          url: '',
+          erro: 'Upload muito lento. Verifique sua conexão e tente novamente.'
+        });
+      };
+
+      xhr.send(formData);
+    } catch (error) {
+      console.error('Erro ao enviar para ImgBB:', error);
+      resolve({
+        sucesso: false,
+        url: '',
+        erro: 'Erro ao enviar foto. Tente novamente.'
+      });
+    }
+  });
 }
+
+/* ---------- CONVERSÃO ---------- */
 
 /**
- * Traduz códigos de erro do Firebase Storage para mensagens amigáveis
- * @param {string} errorCode — Código de erro do Firebase
+ * Converte Blob para string base64 (sem prefixo data:)
+ * @param {Blob} blob
+ * @returns {Promise<string>} base64 puro
+ */
+function blobParaBase64(blob) {
+  return new Promise(function (resolve, reject) {
+    try {
+      var reader = new FileReader();
+      reader.onload = function () {
+        // Remover prefixo "data:image/jpeg;base64,"
+        var base64 = reader.result.split(',')[1];
+        resolve(base64);
+      };
+      reader.onerror = function () {
+        reject(new Error('Não foi possível ler a imagem'));
+      };
+      reader.readAsDataURL(blob);
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
+
+/* ---------- ERROS ---------- */
+
+/**
+ * Traduz códigos de erro HTTP para mensagens amigáveis
+ * @param {number} status — Código HTTP
  * @returns {string} Mensagem amigável
  */
-function traduzirErroStorage(errorCode) {
+function traduzirErroImgBB(status) {
   var mensagens = {
-    'storage/unauthorized': 'Sem permissão para enviar. Verifique as regras do Storage.',
-    'storage/canceled': 'Upload cancelado.',
-    'storage/retry-limit-exceeded': 'Conexão instável. Tente novamente.',
-    'storage/invalid-checksum': 'Arquivo corrompido. Tente outra foto.',
-    'storage/server-file-wrong-size': 'Erro no envio. Tente novamente.',
-    'storage/quota-exceeded': 'Limite de armazenamento atingido. Entre em contato com o administrador.',
-    'storage/unauthenticated': 'Erro de autenticação. Recarregue a página.',
-    'storage/unknown': 'Erro desconhecido. Tente novamente.'
+    400: 'Imagem inválida. Tente outra foto.',
+    401: 'API key inválida. Verifique a configuração.',
+    403: 'Acesso negado. Verifique sua API key.',
+    413: 'Foto muito grande. Tente uma imagem menor.',
+    429: 'Muitos envios. Aguarde um momento e tente novamente.',
+    500: 'Servidor de imagens indisponível. Tente novamente.',
+    503: 'Serviço temporariamente fora do ar. Tente novamente.'
   };
 
-  return mensagens[errorCode] || 'Erro ao enviar foto. Tente novamente.';
+  return mensagens[status] || 'Erro ao enviar foto (código ' + status + '). Tente novamente.';
 }
+
+/* ---------- PREVIEW ---------- */
 
 /**
  * Gera preview local da imagem selecionada (sem upload)
@@ -186,8 +257,9 @@ function gerarPreviewLocal(file) {
 
 /*
   LISTA DE FUNÇÕES PRESENTES:
-  1. uploadFoto(file, onProgress) — Upload com compressão, progresso e timeout
-  2. gerarNomeArquivo(nomeOriginal) — Gera nome único para o arquivo
-  3. traduzirErroStorage(errorCode) — Traduz erros Firebase para mensagens amigáveis
-  4. gerarPreviewLocal(file) — Gera preview local sem upload
+  1. uploadFoto(file, onProgress) — Upload com compressão, progresso e timeout via ImgBB
+  2. enviarParaImgBB(base64Data, onProgress) — Envia base64 para API ImgBB
+  3. blobParaBase64(blob) — Converte Blob para base64 puro
+  4. traduzirErroImgBB(status) — Traduz erros HTTP para mensagens amigáveis
+  5. gerarPreviewLocal(file) — Gera preview local sem upload
 */
