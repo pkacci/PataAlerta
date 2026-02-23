@@ -196,9 +196,13 @@ function inicializarApp() {
     }
 
     // 3. Carregar configuração (bairros, espécies, cidades)
+    // Limpar cache para garantir dados frescos do Firestore
+    try { localStorage.removeItem('pataalerta_config'); } catch (e) {}
+
     carregarConfig()
       .then(function (config) {
         if (config) {
+          console.log('📋 Config:', JSON.stringify(config));
           popularSelectBairros(config.bairros || []);
           popularSelectCidades(config.cidades || []);
           console.log('✅ Config carregada');
